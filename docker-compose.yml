@@ -1,0 +1,48 @@
+version: "2" 
+  
+services: 
+  kafka: 
+    container_name: kafka
+    image: docker.io/bitnami/kafka:3.5 
+    networks:
+      - network-kafka
+    ports: 
+      - "9092:9092" 
+    environment: 
+      - KAFKA_BROKER_ID=1
+      # define os listners interno e externo
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092
+      # especificar o local que o produtor e consumidor deve se conectar interno e externo
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+      # define os protocolos de segurança
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT
+      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=PLAINTEXT
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      # local de onde os produtores e consumidores externo deve se conectar
+      - ADVERTISED_HOST=localhost
+
+  zookeeper:
+    container_name: zookeeper
+    image: docker.io/bitnami/zookeeper:3.9
+    networks:
+      - network-kafka
+    ports:
+      - "2181:2181"
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+
+  kafdrop:
+    container_name: KAFDROP
+    image: obsidiandynamics/kafdrop:latest
+    networks:
+      - network-kafka
+    depends_on:
+      - kafka
+    ports:
+      - "19000:9000"
+    environment:
+      - KAFKA_BROKERCONNECT= kafka:9092
+
+networks: 
+  network-kafka: 
+    driver: bridge 
